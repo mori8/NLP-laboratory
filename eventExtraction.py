@@ -1,8 +1,11 @@
-from transformers import AutoTokenizer, AutoModelForQuestionAnswering
+from transformers import pipeline
 import tensorflow as tf
 
-tokenizer = AutoTokenizer.from_pretrained("bert-large-uncased-whole-word-masking-finetuned-squad")
-model = AutoModelForQuestionAnswering.from_pretrained("bert-large-uncased-whole-word-masking-finetuned-squad")
+qa_pipeline = pipeline(
+    "question-answering",
+    model="bert-large-uncased-whole-word-masking-finetuned-squad",
+    tokenizer="bert-large-uncased-whole-word-masking-finetuned-squad"
+)
 
 question, context = "When does the closing ceremony start?", """We wish you and your parents good health and good luck
 in the new year. I would like to inform you that the closing ceremony and graduation ceremony for the 2018 school year
@@ -18,13 +21,8 @@ floor) 10:30, New students arrive at 9:00 (entry into the new class classroom) 3
 school website *The above schedule is subject to change due to school circumstances. Please refer to the school website.
 """
 
-inputs = tokenizer(question, context, return_tensors="pt")
-with tf.stop_gradient():
-    outputs = model(**inputs)
+print(qa_pipeline({
+    'context': context,
+    'question': question
 
-answer_start_index = outputs.start_logits.argmax()
-answer_end_index = outputs.end_logits.argmax()
-
-predict_answer_tokens = inputs.input_ids[0, answer_start_index : answer_end_index + 1]
-print(tokenizer.decode(predict_answer_tokens))
-
+}))
